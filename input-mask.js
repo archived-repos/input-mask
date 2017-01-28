@@ -48,9 +48,16 @@ function valueMask (pattern) {
       }
     }
 
+    if( previousValue && value.length < previousValue.length ) {
+      return {
+        value: previousValue.substr(-1) === separators[p][0] ? result.substr(0, result.length - 1) : result,
+        filled: p === patterns.length
+      };
+    }
+
     return {
-      value: previousValue && value.length < previousValue.length ? result.substr(0, result.length - 1) : result + separators[p],
-      filled: p = patterns.length
+      value: result + separators[p],
+      filled: p === patterns.length
     };
   };
 }
