@@ -34,9 +34,9 @@ function valueMask (pattern) {
         p = 0;
 
     for( i = 0, n = letters.length; i < n ; i++ ) {
+      if( !patterns[p] ) return { value: result, filled: true };
       letter = patterns[p].transform ? patterns[p].transform(letters[i]) : letters[i];
 
-      if( !patterns[p] ) return { value: result, filled: true };
       if( patterns[p].test(letter) ) {
         result += separators[p] + letter;
         p++;

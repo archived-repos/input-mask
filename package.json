@@ -1,6 +1,6 @@
 {
   "name": "input-mask",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "input mask parser",
   "main": "input-mask.js",
   "scripts": {
