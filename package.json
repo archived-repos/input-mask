@@ -1,0 +1,14 @@
+{
+  "name": "input-mask",
+  "version": "1.0.0",
+  "description": "input mask parser",
+  "main": "value-mask.js",
+  "scripts": {
+    "test": "$(npm bin)/eslint input-mask.js tests/** && $(npm bin)/mocha tests"
+  },
+  "author": "Jesús Germade <jesus@germade.es>",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^3.14.1"
+  }
+}
