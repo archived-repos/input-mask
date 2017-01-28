@@ -6,7 +6,7 @@
   "scripts": {
     "test": "$(npm bin)/eslint input-mask.js tests/** && $(npm bin)/mocha tests"
   },
-  "repository": "git@github.com:kiltjs/input-mask.git"
+  "repository": "git@github.com:kiltjs/input-mask.git",
   "author": "Jesús Germade <jesus@germade.es>",
   "license": "ISC",
   "devDependencies": {
