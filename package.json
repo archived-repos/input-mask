@@ -10,6 +10,7 @@
   "author": "Jesús Germade <jesus@germade.es>",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^3.14.1"
+    "eslint": "^3.14.1",
+    "mocha": "^3.2.0"
   }
 }
