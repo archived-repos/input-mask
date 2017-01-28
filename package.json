@@ -1,8 +1,8 @@
 {
   "name": "input-mask",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "input mask parser",
-  "main": "value-mask.js",
+  "main": "input-mask.js",
   "scripts": {
     "test": "$(npm bin)/eslint input-mask.js tests/** && $(npm bin)/mocha tests"
   },
