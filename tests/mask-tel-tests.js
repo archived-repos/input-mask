@@ -18,6 +18,9 @@ describe('tel', function () {
     assert.strictEqual( tel('123456789').value, '123 456 789' );
     assert( tel('123456789').filled );
 
+    assert.strictEqual( tel('12345678901234').value, '123 456 789' );
+    assert( tel('12345678901234').filled );
+
   });
 
   it('should return formatted telephone (formatted input)', function () {

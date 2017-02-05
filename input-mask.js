@@ -1,15 +1,16 @@
+/* global define */
+
+(function (root) {
 
 var matchValues = /{([a-z]+\:)?[\w\-]+}/g,
     matchParts = /{(([a-z]+)\:)?([\w\-]+)}/;
-
-module.exports = valueMask;
 
 var transformers = {
   up: function (value) { return value.toUpperCase(); },
   lo: function (value) { return value.toLowerCase(); }
 };
 
-function valueMask (pattern) {
+function inputMask (pattern) {
   var matchDigit = /\d/,
       markSeparators = pattern.split(matchValues).filter(function (v, i) { return !(i%2); }),
       patterns = pattern.match(matchValues).map(function (brackets) {
@@ -26,7 +27,7 @@ function valueMask (pattern) {
         return pat;
       });
 
-  return function (value, previousValue) {
+  function mask (value, previousValue) {
     var separators = markSeparators.slice(),
         result = '',
         letters = value.split(''),
@@ -59,5 +60,57 @@ function valueMask (pattern) {
       value: result + separators[p],
       filled: p === patterns.length
     };
+  }
+
+  var isAndroid = root.navigator && root.navigator.userAgent.indexOf('Android') !== -1,
+      noop = function (value) { return value; };
+
+  mask.bind = function (input, options) {
+    options = options || {};
+
+    var previousValue = input.value,
+        preMask = options.preMask || noop,
+        postMask = options.postMask || noop;
+
+    input.__mask = {
+      handler: function (_e) {
+        var newValue = preMask(input.value, previousValue),
+            result = mask(newValue, previousValue);
+
+        input.value = result.value;
+
+        postMask(input, result.value, result.filled);
+      },
+      useCapture: options.useCapture,
+      events: options.events || [isAndroid ? 'keyup' : 'input', 'blur']
+    };
+
+    input.__mask.events.forEach(function (eventName) {
+      input.addEventListener(eventName, input.__mask.handler, input.__mask.useCapture );
+    });
   };
+
+  mask.unbind = function (input, eventNames) {
+    if( input.__mask ) {
+      ( eventNames || input.__mask.events ).forEach(function (eventName) {
+        input.removeEventListener(eventName, input.__mask.handler, input.__mask.useCapture );
+      });
+    }
+  };
+
+  return mask;
 }
+
+
+if( typeof exports === 'object' && typeof module !== 'undefined' ) {
+    // CommonJS
+    module.exports = inputMask;
+} else if( typeof define === 'function' && define.amd ) {
+    // AMD. Register as an anonymous module.
+    define([], function () { return inputMask; });
+} else {
+    // Browser globals
+    root.mask = inputMask;
+}
+
+})(this);
