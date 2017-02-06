@@ -65,6 +65,13 @@ function inputMask (pattern) {
   var isAndroid = root.navigator && root.navigator.userAgent.indexOf('Android') !== -1,
       noop = function (value) { return value; };
 
+  function processValidators (input, result, validators) {
+    var validationErrors = {};
+
+    for( var key in validators ) validationErrors[key] = validators[key](input, result);
+    return validationErrors;
+  }
+
   mask.bind = function (input, options) {
     options = options || {};
 
@@ -75,11 +82,32 @@ function inputMask (pattern) {
     input.__mask = {
       handler: function (_e) {
         var newValue = preMask(input.value, previousValue),
-            result = mask(newValue, previousValue);
+            result = postMask( mask(newValue, previousValue), previousValue ),
+            validationResults;
 
         input.value = result.value;
 
-        postMask(input, result.value, result.filled);
+        if( options.preValidator ) {
+          validationResult = options.preValidator(input, result);
+          if( validationResult !== undefined ) {
+            input.setCustomValidity( validationResult ? (options.errorMessages[validationResult] || validationResult) : '' );
+            return;
+          }
+        }
+
+        if( options.validators ) {
+          validationResult = processValidators(input, result, options.validators);
+          if( Object.keys(validationResult).length ) {
+            input.setCustomValidity(
+              options.errorMessages ?
+              options.errorMessages[ validationResult[Object.keys(validationResult)[0]] ] :
+              validationResult[Object.keys(validationResult)[0]]
+            );
+            return;
+          } else {
+            input.setCustomValidity('');
+          }
+        }
       },
       useCapture: options.useCapture,
       events: options.events || [isAndroid ? 'keyup' : 'input', 'blur']
