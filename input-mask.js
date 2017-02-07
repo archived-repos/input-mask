@@ -73,7 +73,7 @@ function inputMask (pattern) {
     return validationErrors;
   }
 
-  mask.bind = function (input, options) {
+  mask.bindTo = function (input, options) {
     options = options || {};
 
     var previousValue = input.value,
@@ -96,7 +96,7 @@ function inputMask (pattern) {
 
     var handler = function (_e) {
       var newValue = preMask(input.value, previousValue),
-          result = postMask( mask(newValue, previousValue), previousValue ),
+          result = postMask( mask(newValue === undefined ? input.value : newValue, previousValue), previousValue ),
           validationResult;
 
       input.value = result.value;
