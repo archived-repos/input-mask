@@ -64,21 +64,11 @@ function inputMask (pattern) {
     };
   }
 
-  var noop = function (value) { return value; };
-
-  function processValidators (input, result, validators) {
-    var validationErrors = {};
-
-    for( var key in validators ) validationErrors[key] = validators[key](input, result);
-    return validationErrors;
-  }
-
   mask.bindTo = function (input, options) {
     options = options || {};
 
     var previousValue = input.value,
-        preMask = options.preMask || noop,
-        postMask = options.postMask || noop,
+        errorMessages = options.errorMessages,
         eventNames = [isAndroid ? 'keyup' : 'input', 'blur'],
         listeners = {};
 
@@ -94,36 +84,54 @@ function inputMask (pattern) {
       });
     };
 
-    var handler = function (_e) {
-      var newValue = preMask(input.value, previousValue),
-          result = postMask( mask(newValue === undefined ? input.value : newValue, previousValue), previousValue ),
-          validationResult;
+    var validityEmit = function (result, validationMessage) {
+      input.setCustomValidity(validationMessage);
+      emit('change', [result.value, result.filled]);
+    };
 
+    var updateInput = function (result) {
+      var validationError;
+
+      previousValue = result.value;
       input.value = result.value;
 
+      if( !errorMessages ) return emit('change');
+
       if( options.preValidator ) {
-        validationResult = options.preValidator(input, result);
-        if( validationResult !== undefined ) {
-          input.setCustomValidity( validationResult ? (options.errorMessages[validationResult] || validationResult) : '' );
-          return;
-        }
+        validationError = options.preValidator(result.value, result.filled, input, mask);
+
+        if( validationError !== undefined ) return validityEmit(result, errorMessages[validationError]);
+      }
+
+      if( input.getAttribute('required') !== null && !input.value ) {
+        return validityEmit(result, errorMessages.required);
       }
 
       if( options.validators ) {
-        validationResult = processValidators(input, result, options.validators);
-        if( Object.keys(validationResult).length ) {
-          input.setCustomValidity(
-            options.errorMessages ?
-            options.errorMessages[ validationResult[Object.keys(validationResult)[0]] ] :
-            validationResult[Object.keys(validationResult)[0]]
-          );
-          return;
-        } else {
-          input.setCustomValidity('');
+        for( var key in options.validators ) {
+          validationError = !options.validators[key](result.value, result.filled, input, mask);
+          if( validationError ) return validityEmit(result, errorMessages[key]);
         }
       }
 
-      emit('change');
+      validityEmit(result, result.filled ? '' : ( errorMessages.uncomplete || errorMessages.pattern ) );
+    };
+
+    var handler = function (_e) {
+      var result = options.preMask ? { value: options.preMask(input.value, previousValue) } : {};
+
+      if( result.value !== undefined ) {
+        return updateInput({ value: result.value, filled: mask(result.value).filled });
+      }
+
+      result = mask(input.value, previousValue);
+
+      if( !options.postMask ) return updateInput( result );
+
+      result = { value: options.postMask(result.value, previousValue) };
+      result.filled = mask(result.value).filled;
+
+      return updateInput(result);
     };
 
     eventNames.forEach(function (eventName) {
