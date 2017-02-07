@@ -2,6 +2,8 @@
 
 (function (root) {
 
+var isAndroid = root.navigator && root.navigator.userAgent.indexOf('Android') !== -1;
+
 var matchValues = /{([a-z]+\:)?[\w\-]+}/g,
     matchParts = /{(([a-z]+)\:)?([\w\-]+)}/;
 
@@ -62,8 +64,7 @@ function inputMask (pattern) {
     };
   }
 
-  var isAndroid = root.navigator && root.navigator.userAgent.indexOf('Android') !== -1,
-      noop = function (value) { return value; };
+  var noop = function (value) { return value; };
 
   function processValidators (input, result, validators) {
     var validationErrors = {};
@@ -77,53 +78,68 @@ function inputMask (pattern) {
 
     var previousValue = input.value,
         preMask = options.preMask || noop,
-        postMask = options.postMask || noop;
+        postMask = options.postMask || noop,
+        eventNames = [isAndroid ? 'keyup' : 'input', 'blur'],
+        listeners = {};
 
-    input.__mask = {
-      handler: function (_e) {
-        var newValue = preMask(input.value, previousValue),
-            result = postMask( mask(newValue, previousValue), previousValue ),
-            validationResults;
-
-        input.value = result.value;
-
-        if( options.preValidator ) {
-          validationResult = options.preValidator(input, result);
-          if( validationResult !== undefined ) {
-            input.setCustomValidity( validationResult ? (options.errorMessages[validationResult] || validationResult) : '' );
-            return;
-          }
-        }
-
-        if( options.validators ) {
-          validationResult = processValidators(input, result, options.validators);
-          if( Object.keys(validationResult).length ) {
-            input.setCustomValidity(
-              options.errorMessages ?
-              options.errorMessages[ validationResult[Object.keys(validationResult)[0]] ] :
-              validationResult[Object.keys(validationResult)[0]]
-            );
-            return;
-          } else {
-            input.setCustomValidity('');
-          }
-        }
-      },
-      useCapture: options.useCapture,
-      events: options.events || [isAndroid ? 'keyup' : 'input', 'blur']
+    var on = function (eventName, handler) {
+      if( typeof handler !== 'function' ) throw new Error('handler should be a function');
+      listeners[eventName] = listeners[eventName] || [];
+      listeners[eventName].push(handler);
     };
 
-    input.__mask.events.forEach(function (eventName) {
-      input.addEventListener(eventName, input.__mask.handler, input.__mask.useCapture );
-    });
-  };
-
-  mask.unbind = function (input, eventNames) {
-    if( input.__mask ) {
-      ( eventNames || input.__mask.events ).forEach(function (eventName) {
-        input.removeEventListener(eventName, input.__mask.handler, input.__mask.useCapture );
+    var emit = function (eventName, args) {
+      (listeners[eventName] || []).forEach(function (listener) {
+        listener.apply(input, args || []);
       });
-    }
+    };
+
+    var handler = function (_e) {
+      var newValue = preMask(input.value, previousValue),
+          result = postMask( mask(newValue, previousValue), previousValue ),
+          validationResult;
+
+      input.value = result.value;
+
+      if( options.preValidator ) {
+        validationResult = options.preValidator(input, result);
+        if( validationResult !== undefined ) {
+          input.setCustomValidity( validationResult ? (options.errorMessages[validationResult] || validationResult) : '' );
+          return;
+        }
+      }
+
+      if( options.validators ) {
+        validationResult = processValidators(input, result, options.validators);
+        if( Object.keys(validationResult).length ) {
+          input.setCustomValidity(
+            options.errorMessages ?
+            options.errorMessages[ validationResult[Object.keys(validationResult)[0]] ] :
+            validationResult[Object.keys(validationResult)[0]]
+          );
+          return;
+        } else {
+          input.setCustomValidity('');
+        }
+      }
+
+      emit('change');
+    };
+
+    eventNames.forEach(function (eventName) {
+      input.addEventListener(eventName, handler, options.useCapture );
+    });
+
+    return {
+      on: on,
+      emit: emit,
+      unbind: function ( _eventNames ) {
+        ( _eventNames || eventNames ).forEach(function (eventName) {
+          input.removeEventListener(eventName, handler, options.useCapture );
+        });
+      }
+    };
+
   };
 
   return mask;
