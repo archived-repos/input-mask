@@ -118,11 +118,9 @@ function inputMask (pattern) {
     };
 
     var handler = function (_e) {
-      var result = options.preMask ? { value: options.preMask(input.value, previousValue) } : {};
+      var result = options.preMask ? options.preMask(input.value, previousValue) : null;
 
-      if( result.value !== undefined ) {
-        return updateInput({ value: result.value, filled: mask(result.value).filled });
-      }
+      if( result ) return updateInput(result);
 
       result = mask(input.value, previousValue);
 
