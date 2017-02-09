@@ -2,7 +2,7 @@
 
 (function (root) {
 
-var isAndroid = root.navigator && root.navigator.userAgent.indexOf('Android') !== -1;
+var isAndroid = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Android') !== -1;
 
 var matchValues = /{([a-z]+\:)?[\w\-]+}/g,
     matchParts = /{(([a-z]+)\:)?([\w\-]+)}/;
@@ -89,6 +89,14 @@ function inputMask (pattern) {
       emit('change', [result.value, result.filled]);
     };
 
+    function getErrorMessage (key) {
+      for( var i = 0, n = arguments.length; i < n ; i++ ) {
+        if( errorMessages[arguments[i]] ) return errorMessages[arguments[i]];
+      }
+      console.warn('missing errorMessage for', arguments );
+      return '';
+    }
+
     var updateInput = function (result) {
       var validationError;
 
@@ -98,29 +106,30 @@ function inputMask (pattern) {
       if( !errorMessages ) return emit('change');
 
       if( options.preValidator ) {
-        validationError = options.preValidator(result.value, result.filled, input, mask);
+        validationError = options.preValidator(result.value, result.filled, input);
 
-        if( validationError !== undefined ) return validityEmit(result, errorMessages[validationError]);
+        if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError));
       }
 
       if( input.getAttribute('required') !== null && !input.value ) {
-        return validityEmit(result, errorMessages.required);
+        return validityEmit(result, getErrorMessage('required'));
       }
 
       if( options.validators ) {
         for( var key in options.validators ) {
-          validationError = !options.validators[key](result.value, result.filled, input, mask);
-          if( validationError ) return validityEmit(result, errorMessages[key]);
+          validationError = !options.validators[key](result.value, result.filled, input);
+          if( validationError ) return validityEmit(result, getErrorMessage(key));
         }
       }
 
-      validityEmit(result, result.filled ? '' : ( errorMessages.uncomplete || errorMessages.pattern ) );
+      validityEmit(result, result.filled ? '' : getErrorMessage('uncomplete', 'pattern') );
     };
 
     var handler = function (_e) {
       var result = options.preMask ? options.preMask(input.value, previousValue) : null;
 
-      if( result ) return updateInput(result);
+      if( typeof result === 'string' ) return updateInput({ value: result, filled: mask(result).filled });
+      else if( result ) return updateInput(result);
 
       result = mask(input.value, previousValue);
 
