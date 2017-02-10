@@ -105,14 +105,16 @@ function inputMask (pattern) {
 
       if( !errorMessages ) return emit('change');
 
+      if( input.getAttribute('required') !== null && !input.value ) {
+        return validityEmit(result, getErrorMessage('required'));
+      }
+
+      if( !input.value ) return validityEmit(result, '');
+
       if( options.preValidator ) {
         validationError = options.preValidator(result.value, result.filled, input);
 
         if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError));
-      }
-
-      if( input.getAttribute('required') !== null && !input.value ) {
-        return validityEmit(result, getErrorMessage('required'));
       }
 
       if( options.validators ) {
