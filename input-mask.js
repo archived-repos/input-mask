@@ -1,4 +1,4 @@
-/* global define */
+/* global define, navigator */
 
 (function (root) {
 
@@ -147,6 +147,7 @@ function inputMask (pattern) {
     });
 
     return {
+      applyMask: handler,
       on: on,
       emit: emit,
       unbind: function ( _eventNames ) {
