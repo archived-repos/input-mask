@@ -84,21 +84,20 @@ function inputMask (pattern) {
       });
     };
 
-    var validityEmit = function (result, validationMessage) {
+    var validityEmit = function (result, validationMessage, changed) {
       input.setCustomValidity(validationMessage);
-      emit('change', [result.value, result.filled]);
+      if( changed ) emit('change', [result.value, result.filled]);
     };
 
-    function getErrorMessage (key) {
+    function getErrorMessage () {
       for( var i = 0, n = arguments.length; i < n ; i++ ) {
         if( errorMessages[arguments[i]] ) return errorMessages[arguments[i]];
       }
-      console.warn('missing errorMessage for', arguments );
       return '';
     }
 
     var updateInput = function (result) {
-      var validationError;
+      var validationError, changed = result.value !== previousValue;
 
       previousValue = result.value;
       input.value = result.value;
@@ -106,25 +105,25 @@ function inputMask (pattern) {
       if( !errorMessages ) return emit('change');
 
       if( input.getAttribute('required') !== null && !input.value ) {
-        return validityEmit(result, getErrorMessage('required'));
+        return validityEmit(result, getErrorMessage('required'), changed);
       }
 
-      if( !input.value ) return validityEmit(result, '');
+      if( !input.value ) return validityEmit(result, '', changed);
 
       if( options.preValidator ) {
         validationError = options.preValidator(result.value, result.filled, input);
 
-        if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError));
+        if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError), changed);
       }
 
       if( options.validators ) {
         for( var key in options.validators ) {
           validationError = !options.validators[key](result.value, result.filled, input);
-          if( validationError ) return validityEmit(result, getErrorMessage(key));
+          if( validationError ) return validityEmit(result, getErrorMessage(key), changed);
         }
       }
 
-      validityEmit(result, result.filled ? '' : getErrorMessage('uncomplete', 'pattern') );
+      validityEmit(result, result.filled ? '' : getErrorMessage('uncomplete', 'pattern'), changed);
     };
 
     var handler = function (_e) {
