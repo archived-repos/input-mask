@@ -102,7 +102,7 @@ function inputMask (pattern) {
       previousValue = result.value;
       input.value = result.value;
 
-      if( !errorMessages ) return emit('change');
+      if( !errorMessages ) return emit('change', [result.value, result.filled]);
 
       if( input.getAttribute('required') !== null && !input.value ) {
         return validityEmit(result, getErrorMessage('required'), changed);
