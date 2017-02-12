@@ -110,8 +110,8 @@ function inputMask (pattern) {
 
       if( !input.value ) return validityEmit(result, '', changed);
 
-      if( options.preValidator ) {
-        validationError = options.preValidator(result.value, result.filled, input);
+      if( options.customError ) {
+        validationError = options.customError(result.value, result.filled, input);
 
         if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError), changed);
       }
