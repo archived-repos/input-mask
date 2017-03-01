@@ -64,6 +64,27 @@ function inputMask (pattern) {
     };
   }
 
+  var getValidityError = function (result, options, required) {
+    var validityError = '';
+
+    if( !result.value ) return required ? 'required' : '';
+
+    if( options.customError ) {
+      validityError = options.customError(result.value, result.filled);
+      if( validityError ) return validityError;
+    }
+
+    if( options.validators ) for( var key in options.validators ) {
+      if( !options.validators[key](result.value, result.filled) ) return key;
+    }
+
+    return result.filled ? '' : 'uncomplete';
+  };
+
+  mask.getValidityError = function (result, options, required) {
+    return getValidityError( typeof result === 'string' ? mask(result) : result, options, required );
+  };
+
   mask.bindTo = function (input, options) {
     options = options || {};
 
@@ -97,33 +118,22 @@ function inputMask (pattern) {
     }
 
     var updateInput = function (result) {
-      var validationError, changed = result.value !== previousValue;
+      var validityError, changed = result.value !== previousValue;
 
       previousValue = result.value;
       input.value = result.value;
 
       if( !errorMessages ) return emit('change', [result.value, result.filled]);
 
-      if( input.getAttribute('required') !== null && !input.value ) {
-        return validityEmit(result, getErrorMessage('required'), changed);
-      }
+      validityError = getValidityError(result, options, input.getAttribute('required') !== null );
 
-      if( !input.value ) return validityEmit(result, '', changed);
-
-      if( options.customError ) {
-        validationError = options.customError(result.value, result.filled, input);
-
-        if( validationError !== undefined ) return validityEmit(result, getErrorMessage(validationError), changed);
-      }
-
-      if( options.validators ) {
-        for( var key in options.validators ) {
-          validationError = !options.validators[key](result.value, result.filled, input);
-          if( validationError ) return validityEmit(result, getErrorMessage(key), changed);
-        }
-      }
-
-      validityEmit(result, result.filled ? '' : getErrorMessage('uncomplete', 'pattern'), changed);
+      validityEmit(
+        result,
+        validityError === 'uncomplete' ?
+          getErrorMessage('uncomplete', 'pattern') :
+          getErrorMessage(validityError),
+        changed
+      );
     };
 
     var handler = function (_e) {
@@ -150,6 +160,11 @@ function inputMask (pattern) {
       applyMask: handler,
       on: on,
       emit: emit,
+      input: input,
+      setValue: function (value) {
+        input.value = value;
+        handler();
+      },
       unbind: function ( _eventNames ) {
         ( _eventNames || eventNames ).forEach(function (eventName) {
           input.removeEventListener(eventName, handler, options.useCapture );
