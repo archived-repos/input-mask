@@ -177,16 +177,8 @@ function inputMask (pattern) {
   return mask;
 }
 
-
-if( typeof exports === 'object' && typeof module !== 'undefined' ) {
-    // CommonJS
-    module.exports = inputMask;
-} else if( typeof define === 'function' && define.amd ) {
-    // AMD. Register as an anonymous module.
-    define([], function () { return inputMask; });
-} else {
-    // Browser globals
-    root.mask = inputMask;
-}
+if( typeof exports === 'object' && typeof module !== 'undefined' ) module.exports = inputMask;
+else if( typeof define === 'function' && define.amd ) define([], function () { return inputMask; });
+else root.mask = inputMask;
 
 })(this);
