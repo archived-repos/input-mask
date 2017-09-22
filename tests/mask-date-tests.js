@@ -1,7 +1,7 @@
 /* global describe, it */
 
 var assert = require('assert'),
-    inputMask = require('../input-mask');
+    inputMask = require('../mask').default;
 
 describe('date', function () {
 
