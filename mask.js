@@ -7,7 +7,7 @@ var transformers = {
   lo: function (value) { return value.toLowerCase(); }
 };
 
-export default function inputMask (pattern) {
+module.exports = function inputMask (pattern) {
   var matchDigit = /\d/,
       markSeparators = pattern.split(matchValues).filter( (_v, i) => !(i%2) ),
       patterns = pattern.match(matchValues).map(function (brackets) {
@@ -60,4 +60,4 @@ export default function inputMask (pattern) {
   }
 
   return mask;
-}
+};

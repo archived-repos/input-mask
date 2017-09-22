@@ -1,9 +1,9 @@
 
 
-import inputMask from './mask';
-import inputBind from './bind';
+var inputMask = require('./mask'),
+    inputBind = require('./bind');
 
-export default function inputService (_service) {
+module.exports = function inputService (_service) {
 
   var formats = {},
       service = _service || {},
@@ -37,4 +37,4 @@ export default function inputService (_service) {
   service.bindTo = inputBind;
 
   return service;
-}
+};
