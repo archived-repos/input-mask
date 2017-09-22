@@ -1,18 +1,15 @@
-/* global define */
 
-(function (root) {
-
-var matchValues = /{([a-z]+\:)?[\w\-]+}/g,
-    matchParts = /{(([a-z]+)\:)?([\w\-]+)}/;
+var matchValues = /{([a-z]+:)?[\w-]+}/g,
+    matchParts = /{(([a-z]+):)?([\w-]+)}/;
 
 var transformers = {
   up: function (value) { return value.toUpperCase(); },
   lo: function (value) { return value.toLowerCase(); }
 };
 
-function inputMask (pattern) {
+export default function inputMask (pattern) {
   var matchDigit = /\d/,
-      markSeparators = pattern.split(matchValues).filter(function (v, i) { return !(i%2); }),
+      markSeparators = pattern.split(matchValues).filter( (_v, i) => !(i%2) ),
       patterns = pattern.match(matchValues).map(function (brackets) {
         if( brackets === '{9}' ) return matchDigit;
         var matches = brackets.match(matchParts);
@@ -64,10 +61,3 @@ function inputMask (pattern) {
 
   return mask;
 }
-
-
-if( typeof exports === 'object' && typeof module !== 'undefined' ) module.exports = inputMask;
-else if( typeof define === 'function' && define.amd ) define([], function () { return inputMask; });
-else root.mask = inputMask;
-
-})(this);
