@@ -4,8 +4,8 @@
 
 var isAndroid = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Android') !== -1;
 
-var matchValues = /{([a-z]+\:)?[\w\-]+}/g,
-    matchParts = /{(([a-z]+)\:)?([\w\-]+)}/;
+var matchValues = /{([a-z]+:)?[\w-]+}/g,
+    matchParts = /{(([a-z]+):)?([\w-]+)}/;
 
 var transformers = {
   up: function (value) { return value.toUpperCase(); },
@@ -89,7 +89,6 @@ function inputMask (pattern) {
     options = options || {};
 
     var previousValue = input.value,
-        errorMessages = options.errorMessages,
         eventNames = [isAndroid ? 'keyup' : 'input', 'blur'],
         listeners = {};
 
@@ -112,7 +111,7 @@ function inputMask (pattern) {
 
     function getErrorMessage () {
       for( var i = 0, n = arguments.length; i < n ; i++ ) {
-        if( errorMessages[arguments[i]] ) return errorMessages[arguments[i]];
+        if( options.errorMessages[arguments[i]] ) return options.errorMessages[arguments[i]];
       }
       return '';
     }
@@ -123,7 +122,7 @@ function inputMask (pattern) {
       previousValue = result.value;
       input.value = result.value;
 
-      if( !errorMessages ) return emit('change', [result.value, result.filled]);
+      if( !options.errorMessages ) return emit('change', [result.value, result.filled]);
 
       validityError = getValidityError(result, options, input.getAttribute('required') !== null );
 
